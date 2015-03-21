@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+	<!-- Declaring bean for connecting to a mysql database and binding jdbc 
+		driver -->
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url"
+			value="jdbc:mysql://sql3.freemysqlhosting.net/sql371355" />
+		<property name="username" value="sql371355" />
+		<property name="password" value="mL8%eG2!" />
+		<property name="maxActive" value="10" />
+		<property name="maxIdle" value="5" />
+		<property name="minIdle" value="1" />
+		<property name="poolPreparedStatements" value="true" />
+		<property name="initialSize" value="1" />
+	</bean>
+
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<constructor-arg ref="dataSource" />
+	</bean>
+
+	<!-- Instansiating DAO bean for connecting and storing records of data in 
+		a mysql database -->
+	<bean id="serviceRecordDAO" class="springmvc.dao.ServiceRecordDAO">
+		<constructor-arg ref="jdbcTemplate" />
+	</bean>
+
+	<bean id="noteDAO" class="springmvc.dao.NoteDAO">
+		<constructor-arg ref="jdbcTemplate" />
+	</bean>
+
+	<bean id="userDAO" class="springmvc.dao.UserDAO">
+		<constructor-arg ref="jdbcTemplate" />
+	</bean>
+
+	<!-- Instansiates a service record manager bean and injects DAO objects -->
+	<bean name="serviceRecordManager" class="springmvc.service.ServiceRecordManager">
+		<property name="serviceRecordDAO" ref="serviceRecordDAO"></property>
+		<property name="noteDAO" ref="noteDAO"></property>
+		<property name="userDAO" ref="userDAO"></property>
+	</bean>
+
+	<!-- Login and Logout controllers -->
+	<bean name="/login.html" class="springmvc.web.LoginController">
+		<property name="commandClass" value="springmvc.model.User" />
+		<property name="formView" value="login" />
+		<property name="successView" value="show_service_records.html" />
+		<property name="serviceRecordManager" ref="serviceRecordManager" />
+	</bean>
+	
+	<bean name="/logged-out.html" class="springmvc.web.LogoutController">
+		
+	</bean>
+
+	<!-- Creates a bean with a custom URL extension to be displayed when the 
+		list controller class is executed. The record manager bean is injected in 
+		this class also -->
+	<bean name="/show_service_records.html" class="springmvc.web.ListServiceRecordController">
+		<property name="serviceRecordManager" ref="serviceRecordManager" />
+	</bean>
+
+	<bean name="/show_note_records.html" class="springmvc.web.ListNoteController">
+		<property name="serviceRecordManager" ref="serviceRecordManager" />
+	</bean>
+
+	<!-- Creates a bean with a custom URL extension to be displayed when the 
+		delete controller class is executed. The record manager bean is injected 
+		in this class as well as the form and success .jsp page names and the forms 
+		command class -->
+	<bean name="/delete_service_record.html" class="springmvc.web.DeleteServiceRecordController">
+		<property name="serviceRecordManager" ref="serviceRecordManager" />
+	</bean>
+
+	<bean name="/delete_note_record.html" class="springmvc.web.DeleteNoteController">
+		<property name="serviceRecordManager" ref="serviceRecordManager" />
+	</bean>
+
+	<!-- Creates a bean with a custom URL extension to be displayed when the 
+		edit controller class is executed. The record manager bean is injected in 
+		this class as well as the form and success .jsp page names and the forms 
+		command class -->
+	<bean name="/edit_service_record.html" class="springmvc.web.EditServiceRecordController">
+		<property name="commandClass" value="springmvc.model.ServiceRecord" />
+		<property name="formView" value="serviceRecordNew" />
+		<property name="successView" value="show_service_records.html" />
+		<property name="serviceRecordManager" ref="serviceRecordManager" />
+	</bean>
+
+	<!-- Creates a bean with a custom URL extension to be displayed when the 
+		add controller class is executed. The record manager bean is injected in 
+		this class as well as the form and success .jsp page names, and the forms 
+		command class -->
+	<bean name="/add_service_record.html" class="springmvc.web.AddServiceRecordController">
+		<property name="commandClass" value="springmvc.model.ServiceRecord" />
+		<property name="formView" value="serviceRecordNew" />
+		<property name="successView" value="show_service_records.html" />
+		<property name="serviceRecordManager" ref="serviceRecordManager" />
+	</bean>
+
+	<bean name="/add_note_record.html" class="springmvc.web.AddNoteController">
+		<property name="commandClass" value="springmvc.model.Note" />
+		<property name="formView" value="noteNew" />
+		<property name="successView" value="show_note_records.html" />
+		<property name="serviceRecordManager" ref="serviceRecordManager" />
+	</bean>
+
+	<!-- Resolves the view to seperate view from controller. Its Interface is 
+		implemented by objects that can resolve views by name. -->
+	<bean id="viewResolver"
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="viewClass"
+			value="org.springframework.web.servlet.view.JstlView" />
+		<property name="prefix" value="/jsp/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+</beans>
